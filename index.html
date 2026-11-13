@@ -1,0 +1,198 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quick Invoice Generator</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  background: #f1f5f9;
+  color: #1e293b;
+}
+.container {
+  max-width: 750px;
+  margin: auto;
+  background: white;
+  padding: 25px;
+  border-radius: 14px;
+  box-shadow: 0 4px 20px #00000010;
+}
+h1 { color: #2563eb; margin-bottom: 5px; }
+.subtitle { color: #64748b; margin-bottom: 25px; }
+label {
+  display: block;
+  font-weight: bold;
+  margin: 12px 0 6px;
+}
+input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  font-size: 15px;
+}
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+th, td {
+  padding: 9px 5px;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+}
+th { background: #eff6ff; }
+td input { min-width: 0; padding: 9px 5px; }
+.total {
+  text-align: right;
+  font-size: 20px;
+  font-weight: bold;
+  margin-top: 20px;
+}
+button {
+  border: none;
+  padding: 12px 16px;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-top: 15px;
+}
+.add { background: #dbeafe; color: #1d4ed8; }
+.print { background: #2563eb; color: white; width: 100%; }
+.remove { background: #fee2e2; color: #b91c1c; padding: 8px; }
+.small { color: #64748b; font-size: 13px; }
+@media(max-width: 480px) {
+  body { padding: 10px; }
+  .container { padding: 15px; }
+  th, td { font-size: 12px; }
+  .row { grid-template-columns: 1fr; gap: 0; }
+}
+@media print {
+  body { background: white; padding: 0; }
+  .container { box-shadow: none; }
+  .no-print { display: none !important; }
+  input { border: none; padding: 3px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>QUICK INVOICE</h1>
+  <p class="subtitle">Simple invoicing for your business.</p>
+
+  <div class="row">
+    <div>
+      <label>Business Name</label>
+      <input id="business" placeholder="Your business name">
+    </div>
+    <div>
+      <label>Invoice Number</label>
+      <input id="invoiceNo" value="INV-001">
+    </div>
+  </div>
+
+  <label>Customer Name</label>
+  <input id="customer" placeholder="Customer's full name">
+
+  <label>Customer Email</label>
+  <input id="email" type="email" placeholder="customer@email.com">
+
+  <div class="row">
+    <div>
+      <label>Invoice Date</label>
+      <input id="date" type="date">
+    </div>
+    <div>
+      <label>Due Date</label>
+      <input id="due" type="date">
+    </div>
+  </div>
+
+  <h3>Items / Services</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Description</th>
+        <th>Qty</th>
+        <th>Price (₦)</th>
+        <th>Total</th>
+        <th class="no-print"></th>
+      </tr>
+    </thead>
+    <tbody id="items"></tbody>
+  </table>
+
+  <button class="add no-print" onclick="addItem()">+ Add Item</button>
+
+  <div class="total">
+    Grand Total: <span id="grandTotal">₦0.00</span>
+  </div>
+
+  <label>Notes / Payment Details</label>
+  <input id="notes" placeholder="Thank you for your business!">
+
+  <button class="print no-print" onclick="window.print()">
+    Print / Save Invoice as PDF
+  </button>
+
+  <p class="small">Quick Invoice Generator | Built by BALOO734</p>
+</div>
+
+<script>
+const items = document.getElementById("items");
+
+function addItem() {
+  const tr = document.createElement("tr");
+
+  tr.innerHTML = `
+    <td><input class="description" placeholder="Service or product"></td>
+    <td><input class="qty" type="number" min="0" value="1"></td>
+    <td><input class="price" type="number" min="0" value="0"></td>
+    <td class="lineTotal">₦0.00</td>
+    <td class="no-print">
+      <button class="remove" onclick="this.closest('tr').remove(); calculate()">X</button>
+    </td>
+  `;
+
+  items.appendChild(tr);
+
+  tr.querySelector(".qty").addEventListener("input", calculate);
+  tr.querySelector(".price").addEventListener("input", calculate);
+  calculate();
+}
+
+function calculate() {
+  let grandTotal = 0;
+
+  document.querySelectorAll("#items tr").forEach(row => {
+    const qty = Math.max(0, Number(row.querySelector(".qty").value) || 0);
+    const price = Math.max(0, Number(row.querySelector(".price").value) || 0);
+    const total = qty * price;
+
+    row.querySelector(".lineTotal").textContent =
+      "₦" + total.toLocaleString("en-NG", {minimumFractionDigits: 2});
+
+    grandTotal += total;
+  });
+
+  document.getElementById("grandTotal").textContent =
+    "₦" + grandTotal.toLocaleString("en-NG", {minimumFractionDigits: 2});
+}
+
+document.getElementById("date").value =
+  new Date().toISOString().split("T")[0];
+
+addItem();
+</script>
+</body>
+</html>
